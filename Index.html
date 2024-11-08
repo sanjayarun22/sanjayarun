@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalculatorGPT</title>
+    <style>
+   
+        /* Your original styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px; /* Body text */
+	    font-weight: 400; /* Regular */
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background-color: #f7f7f8;
+            padding: 10px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar h2 {
+            color: #333;
+            font-size: 20px;
+        }
+        .sidebar button {
+            width: 100%;
+            padding: 10px;
+            background-color: #ffffff;
+            color: #333;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            margin: 10px 0;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .sidebar button:hover {
+            background-color: #e0e0e0;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 10px;
+        }
+        h1 {
+            color: #202123.;
+            font-weight: 600;/* Semi-Bold */
+            font-size: 24px;
+        }
+        h2 {
+	    color: #202123.;
+            font-size: 20px;
+	    font-weight: 600;/* Semi-Bold */
+        }
+        label {
+            display: block;
+            margin: 5px 0 5px; /* Reduced top margin */
+            font-size: 16px;
+        }
+        input {
+            padding: 5px;
+            width: calc(100% - 60px); /* Reduced width */
+            max-width: 300px; /* Reduced max-width */
+            margin-bottom: 10px; /* Reduced bottom margin */
+            height: 25px; /* Reduced height */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.selected {
+            background-color: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 5px;
+            width: calc(100% - 60px); /* Adjusted width */
+            max-width: 300px; /* Adjusted max-width */
+            height: 30px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .output-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .unit-buttons {
+            display: inline-block;
+        }
+        .reset-button {
+            margin-left: 10px;
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>CalculatorGPT</h2>
+        <button>Voltage Divider</button>
+        <!-- Add more buttons as needed -->
+    </div>
+    <div class="content">
+        <h1>CalculatorGPT</h1>
+
+        <label for="V">Input Voltage (V):</label>
+        <div>
+            <input type="number" id="V" placeholder="Enter input voltage (V)" required>
+            <button onclick="setVoltageUnit(1, this)" class="selected">V</button>
+            <button onclick="setVoltageUnit(0.001, this)">mV</button>
+            <button onclick="setVoltageUnit(1e-6, this)">µV</button>
+        </div>
+
+        <label for="R_neg50">R -50°C (Ohms):</label>
+        <div>
+            <input type="number" id="R_neg50" placeholder="Enter R -50°C value (Ohms)" required>
+            <button onclick="setResistanceUnit('R_neg50', 1, this)" class="selected">Ω</button>
+            <button onclick="setResistanceUnit('R_neg50', 1000, this)">KΩ</button>
+            <button onclick="setResistanceUnit('R_neg50', 1000000, this)">MΩ</button>
+        </div>
+
+        <label for="R_150">R 150°C (Ohms):</label>
+        <div>
+            <input type="number" id="R_150" placeholder="Enter R 150°C value (Ohms)" required>
+            <button onclick="setResistanceUnit('R_150', 1, this)" class="selected">Ω</button>
+            <button onclick="setResistanceUnit('R_150', 1000, this)">KΩ</button>
+            <button onclick="setResistanceUnit('R_150', 1000000, this)">MΩ</button>
+        </div>
+
+        <label for="Rpull">R Pull-Up (Ohms):</label>
+        <div>
+            <input type="number" id="Rpull" placeholder="Enter R Pull-Up value (Ohms)" required>
+            <button onclick="setResistanceUnit('Rpull', 1, this)" class="selected">Ω</button>
+            <button onclick="setResistanceUnit('Rpull', 1000, this)">KΩ</button>
+            <button onclick="setResistanceUnit('Rpull', 1000000, this)">MΩ</button>
+        </div>
+
+        <label for="Rpulldown">R Pull-Down (Ohms):</label>
+        <div>
+            <input type="number" id="Rpulldown" placeholder="Enter R Pull-Down value (Ohms)" required>
+            <button onclick="setResistanceUnit('Rpulldown', 1, this)" class="selected">Ω</button>
+            <button onclick="setResistanceUnit('Rpulldown', 1000, this)">KΩ</button>
+            <button onclick="setResistanceUnit('Rpulldown', 1000000, this)">MΩ</button>
+        </div>
+
+        <div class="output-container">
+            <div id="output"></div>
+            <button onclick="calculateOutput()">Calculate Output Voltage</button>
+            <button class="reset-button" onclick="resetInputs()">Reset</button>
+        </div>
+
+        <script>
+            const selectedUnits = {
+                voltage: 1,
+                R_neg50: 1,
+                R_150: 1,
+                Rpull: 1,
+                Rpulldown: 1
+            };
+
+            function setVoltageUnit(factor, button) {
+                button.parentNode.querySelectorAll("button").forEach(btn => btn.classList.remove("selected"));
+                button.classList.add("selected");
+                selectedUnits.voltage = factor;
+            }
+
+            function setResistanceUnit(inputId, factor, button) {
+                button.parentNode.querySelectorAll("button").forEach(btn => btn.classList.remove("selected"));
+                button.classList.add("selected");
+                selectedUnits[inputId] = factor;
+            }
+
+            function resetInputs() {
+                document.getElementById("V").value = "";
+                document.getElementById("R_neg50").value = "";
+                document.getElementById("R_150").value = "";
+                document.getElementById("Rpull").value = "";
+                document.getElementById("Rpulldown").value = "";
+                document.getElementById("output").innerHTML = "";
+                resetSelectedUnits();
+            }
+
+            function resetSelectedUnits() {
+                document.querySelectorAll('.unit-buttons button').forEach(button => {
+                    button.classList.remove('selected');
+                });
+            }
+
+            function parallelResistance(R1, R2) {
+                return (R1 * R2) / (R1 + R2);
+            }
+
+            function calculateOutput() {
+                const V = parseFloat(document.getElementById("V").value) * selectedUnits.voltage;
+                const R_neg50 = parseFloat(document.getElementById("R_neg50").value) * selectedUnits.R_neg50;
+                const R_150 = parseFloat(document.getElementById("R_150").value) * selectedUnits.R_150;
+                const Rpull = parseFloat(document.getElementById("Rpull").value) * selectedUnits.Rpull;
+                const Rpulldown = parseFloat(document.getElementById("Rpulldown").value) * selectedUnits.Rpulldown;
+
+                if (isNaN(V) || isNaN(R_neg50) || isNaN(R_150) || isNaN(Rpull) || isNaN(Rpulldown)) {
+                    document.getElementById("output").innerHTML = "Please enter valid values.";
+                    return;
+                }
+
+                const Rparallel_neg50 = parallelResistance(R_neg50, Rpulldown);
+                const outputVoltage_neg50 = V * (R_neg50 / (Rparallel_neg50 + Rpull));
+
+                const Rparallel_150 = parallelResistance(R_150, Rpulldown);
+                const outputVoltage_150 = V * (R_150 / (Rparallel_150 + Rpull));
+
+                document.getElementById("output").innerHTML = `Output Voltage at -50°C: ${outputVoltage_neg50.toFixed(2)} V<br>
+                Output Voltage at 150°C: ${outputVoltage_150.toFixed(2)} V`;
+            }
+        </script>
+    </div>
+</body>
+</html>
